@@ -6,14 +6,22 @@ import {
   Alert,
   StyleSheet,
   Pressable,
+  Platform,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../AppInner';
 import DismissKeyboardView from '../components/DismissKeyboardView';
+import axios from 'axios';
+import Config from 'react-native-config';
+import userSlice from '../slices/user';
+import EncryptedStorage from 'react-native-encrypted-storage';
+import {useAppDispatch} from '../store';
 
 type SignInScreenProps = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
 
 const SignIn = ({navigation}: SignInScreenProps) => {
+  const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const emailRef = useRef<TextInput>(null);
@@ -26,14 +34,46 @@ const SignIn = ({navigation}: SignInScreenProps) => {
     setPassword(text.trim());
   }, []);
 
-  const onSubmit = useCallback(() => {
+  const onSubmit = useCallback(async () => {
+    if (loading) {
+      return;
+    }
     if (!email || !email.trim()) {
       return Alert.alert('알림', '이메일을 입력해주세요.');
     }
     if (!password || !password.trim()) {
       return Alert.alert('알림', '비밀번호를 입력해주세요');
     }
-  }, [email, password]);
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        __DEV__
+          ? Platform.OS === 'ios'
+            ? `${Config.DEV_IOS_API_URL}/login`
+            : `${Config.DEV_ANDROID_API_URL}/login`
+          : `${Config.API_URL}/login`,
+        {email, password},
+      );
+      Alert.alert('알림', '로그인 되었습니다.');
+      dispatch(
+        userSlice.actions.setUser({
+          name: response.data.data.name,
+          email: response.data.data.email,
+          accessToken: response.data.data.accessToken,
+        }),
+      );
+      await EncryptedStorage.setItem(
+        'refreshToken',
+        response.data.data.refreshToken,
+      );
+    } catch (err: any) {
+      if (err.response) {
+        Alert.alert('알림', err.response.data.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [email, password, dispatch, loading]);
 
   const toSignUp = useCallback(() => {
     navigation.navigate('SignUp');
