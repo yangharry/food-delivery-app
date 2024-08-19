@@ -75,7 +75,7 @@ const SignUp = ({navigation}: SignUpScreenProps) => {
           ? Platform.OS === 'ios'
             ? `${Config.DEV_IOS_API_URL}/user`
             : `${Config.DEV_ANDROID_API_URL}/user`
-          : `${Config.API_URL}/user}`,
+          : `${Config.API_URL}/user`,
         {
           email,
           name,

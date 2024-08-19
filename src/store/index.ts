@@ -15,10 +15,6 @@ import {useDispatch} from 'react-redux';
 // });
 const store = configureStore({
   reducer: rootReducer,
-  middleware: getDefaultMiddleware =>
-    __DEV__
-      ? getDefaultMiddleware().concat(require('redux-flipper').default())
-      : getDefaultMiddleware(),
 });
 
 export default store;

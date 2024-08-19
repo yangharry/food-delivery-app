@@ -1,8 +1,9 @@
 import {useSelector} from 'react-redux';
-import SocketClient, {Socket} from 'socket.io-client';
+import SocketIOClient, {Socket} from 'socket.io-client';
 import {RootState} from '../store/reducer';
 import {useCallback} from 'react';
 import Config from 'react-native-config';
+import {Platform} from 'react-native';
 
 let socket: Socket | undefined;
 const useSocket = (): [Socket | undefined, () => void] => {
@@ -16,7 +17,14 @@ const useSocket = (): [Socket | undefined, () => void] => {
   }, [isLoggedIn]);
   if (!socket && isLoggedIn) {
     console.log(!socket && isLoggedIn, '웹소켓 연결을 진행합니다.');
-    socket = SocketClient(`${Config.API_URL}`, {transports: ['websocket']});
+    socket = SocketIOClient(
+      __DEV__
+        ? Platform.OS === 'ios'
+          ? `${Config.DEV_IOS_API_URL}`
+          : `${Config.DEV_ANDROID_API_URL}`
+        : `${Config.API_URL}`,
+      {transports: ['websocket']},
+    );
   }
   return [socket, disconnect];
 };
