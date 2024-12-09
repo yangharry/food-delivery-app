@@ -127,7 +127,7 @@ app.post('/login', (req, res, next) => {
   const accessToken = jwt.sign(
     {sub: 'access', email: req.body.email},
     jwtSecret,
-    {expiresIn: '5m'},
+    {expiresIn: '30m'},
   );
   users[req.body.email].refreshToken = refreshToken;
   return res.json({
@@ -175,6 +175,7 @@ const upload = multer({
     },
   }),
 });
+
 app.post('/complete', verifyToken, upload.single('image'), (req, res, next) => {
   console.log(req.file, req.body, res.locals.email, req.headers);
   const order = orders.find(
